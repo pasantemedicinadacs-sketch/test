@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recetario Médico Avanzado</title>
+  
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <style>
+    /* --- ESTILOS GENERALES Y DISEÑO --- */
+    :root {
+        --primary-color: #008374;
+        --secondary-color: #006a5d;
+        --light-bg: #f0f7f6;
+        --border-color: #dce7e6;
+        --text-color: #333;
+        --label-color: #555;
+        --info-color: #4a5568;
+        --info-hover-color: #2d3748;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #eef2f5;
+      color: var(--text-color);
+      padding: 15px;
+    }
+
+    .container {
+      max-width: 950px;
+      margin: auto;
+      background: #ffffff;
+      padding: 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+
+    fieldset {
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 25px;
+        background-color: #fff;
+    }
+
+    legend {
+        font-weight: 600;
+        font-size: 1.1em;
+        color: var(--primary-color);
+        padding: 0 10px;
+        margin-left: 10px;
+    }
+    legend i { margin-right: 8px; }
+
+    /* --- FORMULARIO Y ENTRADAS --- */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px 20px;
+    }
+    .form-group { display: flex; flex-direction: column; }
+    label { margin-bottom: 5px; font-weight: 500; font-size: 0.9em; color: var(--label-color); }
+    .input-wrapper { position: relative; }
+    .input-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #aaa; }
+
+    input[type="text"], input[type="number"], input[type="date"], select, textarea {
+      width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px;
+      font-size: 0.95em; transition: border-color 0.3s, box-shadow 0.3s;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Heredar fuente */
+    }
+    input[type="text"], input[type="number"], select { padding-left: 35px; }
+    input:focus, select:focus, textarea:focus {
+        border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 131, 116, 0.2); outline: none;
+    }
+    textarea { resize: vertical; min-height: 80px; }
+    input[readonly] { background-color: var(--light-bg); cursor: not-allowed; }
+
+    /* --- NUEVO: Textarea autoajustable --- */
+    .autoresize-textarea {
+        resize: none;
+        overflow-y: hidden; /* Oculta la barra de scroll */
+        min-height: 40px; /* Altura inicial similar a un input */
+        line-height: 1.4;
+        padding: 10px; /* Padding estándar de textarea */
+    }
+
+    /* --- AUTOCOMPLETADO --- */
+    .autocomplete-container { position: relative; }
+    .autocomplete-items {
+        position: absolute; border: 1px solid #d4d4d4; border-bottom: none; border-top: none;
+        z-index: 99; top: 100%; left: 0; right: 0; max-height: 150px; overflow-y: auto;
+    }
+    .autocomplete-items div {
+        padding: 10px; cursor: pointer; background-color: #fff; border-bottom: 1px solid #d4d4d4;
+    }
+    .autocomplete-items div:hover { background-color: #e9e9e9; }
+    .autocomplete-active { background-color: DodgerBlue !important; color: #ffffff; }
+
+    /* --- BOTONES --- */
+    .btn {
+      background-color: var(--primary-color); border: none; color: white; padding: 10px 18px;
+      margin: 5px 3px; border-radius: 6px; cursor: pointer; font-size: 0.95em; font-weight: 500;
+      transition: background-color 0.3s ease, transform 0.1s ease;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn:hover { background-color: var(--secondary-color); }
+    .btn:active { transform: scale(0.98); }
+    .btn-secondary { background-color: #6c757d; }
+    .btn-secondary:hover { background-color: #5a6268; }
+    .btn-danger { background-color: #e74c3c; }
+    .btn-danger:hover { background-color: #c0392b; }
+    .btn-info { background-color: var(--info-color); }
+    .btn-info:hover { background-color: var(--info-hover-color); }
+    .btn-sm { padding: 4px 8px; font-size: 0.8em; }
+
+    .top-buttons, .main-buttons {
+        text-align: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color);
+        /* Permite que los botones se envuelvan */
+        display: flex; flex-wrap: wrap; justify-content: center;
+    }
+    .main-buttons { margin-top: 30px; }
+
+    /* --- SECCIONES DINÁMICAS (DIAGNÓSTICO/MEDICAMENTOS/ESTUDIOS) --- */
+    .dynamic-section .item {
+        background-color: var(--light-bg); border: 1px solid var(--border-color);
+        border-radius: 8px; padding: 15px; margin-top: 15px; position: relative;
+    }
+    .dynamic-section .item-header { font-weight: 600; color: var(--secondary-color); margin-bottom: 10px; }
+    .dynamic-section .item-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .dynamic-section .full-width { grid-column: 1 / -1; }
+    .dynamic-section .delete-btn { position: absolute; top: 10px; right: 10px; }
+    .add-btn-container { text-align: right; margin-top: 10px; }
+
+    /* --- VISTA PREVIA --- */
+    #vista-previa-container {
+        background: #eef2f5; border: 1px solid #ccc; padding: 20px; margin-top: 20px;
+        border-radius: 6px; min-height: 500px; overflow-x: auto;
+    }
+    #vista-previa, #vista-previa-certificado { background: white; margin: auto; box-shadow: 0 0 15px rgba(0,0,0,0.15); }
+
+    /* --- MODALES --- */
+    .modal {
+      display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+      width: 100%; height: 100%; overflow: auto; 
+      background-color: rgba(0,0,0,0.5); animation: fadeIn 0.3s;
+    }
+    .modal-content {
+      background-color: #fefefe; margin: 5% auto; padding: 25px;
+      border: 1px solid #888; width: 90%; max-width: 600px;
+      border-radius: 8px; position: relative; animation: slideIn 0.3s;
+    }
+    /* Estilo para modal de certificado, que es más grande */
+    .modal-content.modal-lg {
+      max-width: 800px;
+    }
+    .modal-content.confirm { max-width: 400px; text-align: center; }
+    .modal-content.confirm .btn-group { margin-top: 20px; }
+    .modal-close {
+      color: #aaa; position: absolute; right: 15px; top: 10px;
+      font-size: 28px; font-weight: bold; cursor: pointer;
+    }
+    .modal-close:hover { color: black; }
+    .modal-tabs { display: flex; border-bottom: 1px solid #ccc; margin-bottom: 15px; }
+    .tab-button { background: none; border: none; padding: 10px 15px; cursor: pointer; font-size: 1em; }
+    .tab-button.active { border-bottom: 3px solid var(--primary-color); font-weight: 600; color: var(--primary-color); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    #historial-lista, .list-item-container { max-height: 250px; overflow-y: auto; }
+    .list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; }
+    .list-item:hover { background-color: #f9f9f9; }
+
+    /* --- NUEVO: Estilo para el modal de Médico --- */
+    .modal-medico-theme h2 {
+        color: #6f42c1;
+    }
+    .modal-medico-theme .btn {
+        background-color: #6f42c1;
+        border-color: #6f42c1;
+    }
+    .modal-medico-theme .btn:hover {
+        background-color: #5a349c; /* Morado más oscuro */
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideIn { from { transform: translateY(-30px); } to { transform: translateY(0); } }
+
+    /* --- ESTILOS PARA IMPRESIÓN --- */
+    @media print {
+      body { background: white; padding: 0; margin: 0; }
+      .container { max-width: 100%; box-shadow: none; padding: 0; }
+      h1, h2, form, .top-buttons, .main-buttons, .modal { display: none; }
+      #vista-previa-container { padding: 0; border: none; overflow: visible; }
+      #vista-previa, #vista-previa-certificado { box-shadow: none; width: 100% !important; height: 100% !important; border: none !important; }
+      
+      /* Oculta la vista previa de receta cuando se imprime el certificado, y viceversa */
+      .printing-certificado #vista-previa-container { display: none; }
+      .printing-receta #modal-certificado { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Recetario Médico</h1>
+
+    <div class="top-buttons">
+      <button type="button" class="btn" id="btn-open-modal-medico" style="background-color: #6f42c1; border-color: #6f42c1;"><i class="fa fa-user-doctor"></i> Médico</button>
+      
+      <button type="button" class="btn btn-info" id="btn-open-modal-logos"><i class="fa fa-image"></i> Logos</button>
+      <button type="button" class="btn btn-info" id="btn-open-modal-historial"><i class="fa fa-history"></i> Historial</button>
+      <button type="button" class="btn btn-info" id="btn-open-modal-plantillas"><i class="fa fa-stream"></i> Plantillas</button>
+      <button type="button" class="btn btn-info" id="btn-open-modal-datos" style="background-color: #555; border-color: #555;"><i class="fa fa-database"></i> Respaldo</button>
+      <button type="button" class="btn btn-info" id="btn-open-modal-padron" style="background-color: #007bff; border-color: #007bff;"><i class="fa fa-users"></i> Padrón</button>
+      <button type="button" class="btn btn-info" id="btn-open-modal-certificado" style="background-color: #fd7e14; border-color: #fd7e14;"><i class="fa fa-file-medical"></i> Certificado</button>
+    </div>
+
+    <form id="form-receta" novalidate>
+      <fieldset>
+        <legend><i class="fa fa-user"></i> Datos del Paciente</legend>
+        <div class="form-grid">
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="paciente-nombre">Nombre</label>
+                <div class="input-wrapper"><i class="fa fa-signature"></i><input type="text" id="paciente-nombre" placeholder="Nombre completo" required /></div>
+            </div>
+            <div class="form-group">
+                <label for="paciente-fecha-nacimiento">F. Nacimiento</label>
+                <div class="input-wrapper"><input type="date" id="paciente-fecha-nacimiento" required /></div>
+            </div>
+            <div class="form-group">
+                <label for="paciente-edad">Edad</label>
+                <div class="input-wrapper"><i class="fa fa-birthday-cake"></i><input type="text" id="paciente-edad" readonly placeholder="Automático" required/></div>
+            </div>
+            <div class="form-group">
+                <label for="paciente-sexo">Sexo</label>
+                <div class="input-wrapper"><i class="fa fa-venus-mars"></i><select id="paciente-sexo" required><option value="" disabled selected>Seleccionar...</option><option value="Masculino">Masculino</option><option value="Femenino">Femenino</option><option value="Otro">Otro</option></select></div>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="alergias">Alergias</label>
+                <div class="input-wrapper"><i class="fa fa-allergies"></i><input type="text" id="alergias" placeholder="Ej: Penicilina. Si no hay, dejar vacío."/></div>
+            </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><i class="fa fa-heart-pulse"></i> Signos Vitales y Somatometría</legend>
+        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+            <div class="form-group"><label>Peso (kg)</label><div class="input-wrapper"><i class="fa fa-weight-scale"></i><input type="number" id="peso" step="0.1" required /></div></div>
+            <div class="form-group"><label>Talla (cm)</label><div class="input-wrapper"><i class="fa fa-ruler-vertical"></i><input type="number" id="talla" step="0.1" required /></div></div>
+            <div class="form-group"><label>IMC (kg/m²)</label><div class="input-wrapper"><i class="fa fa-calculator"></i><input type="text" id="imc" readonly required/></div></div>
+            <div class="form-group"><label>TA Sistólica</label><div class="input-wrapper"><i class="fa fa-droplet"></i><input type="number" id="ta-sistolica" required /></div></div>
+            <div class="form-group"><label>TA Diastólica</label><div class="input-wrapper"><i class="fa fa-droplet"></i><input type="number" id="ta-diastolica" required /></div></div>
+            <div class="form-group"><label>FC (lpm)</label><div class="input-wrapper"><i class="fa fa-heart"></i><input type="number" id="fc" required /></div></div>
+            <div class="form-group"><label>FR (rpm)</label><div class="input-wrapper"><i class="fa fa-lungs"></i><input type="number" id="fr" required /></div></div>
+            <div class="form-group"><label>Temp (°C)</label><div class="input-wrapper"><i class="fa fa-thermometer"></i><input type="number" id="temp" step="0.1" required /></div></div>
+            <div class="form-group"><label>Glucosa (mg/dL)</label><div class="input-wrapper"><i class="fa fa-tint"></i><input type="number" id="glucosa" /></div></div>
+            <div class="form-group"><label>Tipo Glucosa</label><div class="input-wrapper"><i class="fa fa-clock"></i><select id="glucosa-tipo"><option value="">N/A</option><option value="Ayunas">Ayunas</option><option value="Postprandial">Postprandial</option><option value="Aleatoria">Aleatoria</option></select></div></div>
+            <div class="form-group"><label>SpO₂ (%)</label><div class="input-wrapper"><i class="fa fa-percent"></i><input type="number" id="spo2" /></div></div>
+        </div>
+      </fieldset>
+
+      <fieldset class="dynamic-section">
+        <legend><i class="fa fa-stethoscope"></i> Diagnóstico y Prescripción</legend>
+        <div id="diagnosticos-container">
+            </div>
+        <div class="add-btn-container">
+            <button type="button" class="btn" id="btn-agregar-diagnostico"><i class="fa fa-plus"></i> Agregar Diagnóstico</button>
+        </div>
+      </fieldset>
+      
+      <fieldset class="dynamic-section">
+        <legend><i class="fa fa-pills"></i> Medicamentos</legend>
+        <div id="medicamentos-container"></div>
+        <div class="add-btn-container">
+            <button type="button" class="btn" id="btn-agregar-medicamento"><i class="fa fa-plus"></i> Agregar Medicamento</button>
+        </div>
+      </fieldset>
+
+      <fieldset class="dynamic-section">
+        <legend><i class="fa fa-vial"></i> Estudios (Opcional)</legend>
+        <div id="estudios-container"></div>
+        <div class="add-btn-container">
+            <button type="button" class="btn" id="btn-agregar-estudio"><i class="fa fa-plus"></i> Agregar Estudio</button>
+        </div>
+      </fieldset>
+      
+      <fieldset>
+        <legend><i class="fa fa-comment-medical"></i> Indicaciones Generales (Opcional)</legend>
+        <div class="form-group">
+            <textarea id="indicaciones-generales" placeholder="Ej: Reposo relativo, no conducir, próxima cita en 5 días..."></textarea>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><i class="fa fa-file-alt"></i> Formato de Receta</legend>
+        <div class="form-group">
+            <label for="select-tamano">Seleccione un formato para la vista previa y el PDF</label>
+            <select id="select-tamano" required>
+              <option value="carta" selected>Tamaño Carta (8.5 x 11 in)</option>
+              <option value="media-carta-doble">Media Carta Doble (2 en 1 hoja)</option>
+              <option value="media-carta-individual">Media Carta Individual (8.5 x 5.5 in)</option>
+            </select>
+        </div>
+      </fieldset>
+
+      <div class="main-buttons">
+        <button type="button" class="btn" id="btn-vista-previa"><i class="fa fa-eye"></i> Mostrar Vista Previa</button>
+        <button type="button" class="btn" id="btn-generar-pdf"><i class="fa fa-file-pdf"></i> Generar PDF</button>
+        <button type="button" class="btn btn-secondary" id="btn-guardar-receta"><i class="fa fa-save"></i> Guardar Receta</button>
+        <button type="button" class="btn btn-danger" id="btn-limpiar"><i class="fa fa-broom"></i> Limpiar Formulario</button>
+      </div>
+    </form>
+
+    <h2>Vista Previa de Receta</h2>
+    <div id="vista-previa-container">
+        <div id="vista-previa" aria-live="polite"></div>
+    </div>
+
+    <div id="modal-medico" class="modal"><div class="modal-content modal-medico-theme"><span class="modal-close" id="close-modal-medico">&times;</span><h2>Datos del Médico</h2><label for="medico-nombre">Nombre completo</label><input type="text" id="medico-nombre" /><label for="medico-especialidad">Especialidad</label><input type="text" id="medico-especialidad" placeholder="Ej: Medicina General" /><label for="medico-cedula">Cédula profesional</label><input type="text" id="medico-cedula" /><label for="medico-universidad">Universidad</label><input type="text" id="medico-universidad" /><label for="medico-direccion">Dirección del Consultorio</label><input type="text" id="medico-direccion" placeholder="Calle, Número, Colonia, Ciudad"/><label for="medico-contacto">Contacto (Teléfono/Email)</label><input type="text" id="medico-contacto" placeholder="Ej: 993-123-4567"/><button type="button" class="btn" id="btn-guardar-medico">Guardar Datos</button></div></div>
+    
+    <div id="modal-logos" class="modal"><div class="modal-content"><span class="modal-close" id="close-modal-logos">&times;</span><h2>Configurar Logos</h2><div><h4>Logo Izquierdo</h4><label for="logo-izquierdo-url">URL del Logo</label><input type="text" id="logo-izquierdo-url" placeholder="https://..." /><label for="logo-izquierdo-file">O adjuntar archivo:</label><input type="file" id="logo-izquierdo-file" accept="image/*" /></div><hr><div><h4>Logo Derecho</h4><label for="logo-derecho-url">URL del Logo</label><input type="text" id="logo-derecho-url" placeholder="https://..." /><label for="logo-derecho-file">O adjuntar archivo:</label><input type="file" id="logo-derecho-file" accept="image/*" /></div><button type="button" class="btn" id="btn-guardar-logos">Guardar Logos</button></div></div>
+    
+    <div id="modal-historial" class="modal"><div class="modal-content"><span class="modal-close" id="close-modal-historial">&times;</span><h2>Historial de Pacientes</h2><input type="text" id="historial-busqueda" placeholder="Buscar por nombre de paciente..." style="margin-bottom: 15px; padding-left: 15px; width: 100%;"><div id="historial-lista"></div></div></div>
+
+    <div id="modal-plantillas" class="modal"><div class="modal-content"><span class="modal-close" id="close-modal-plantillas">&times;</span><h2>Administrar Plantillas</h2><div class="modal-tabs"><button class="tab-button active" data-tab="tab-dx">Diagnósticos</button><button class="tab-button" data-tab="tab-med">Medicamentos</button></div><div id="tab-dx" class="tab-content active"><h3>Plantillas de Diagnósticos</h3><div class="form-group"><label>Nuevo diagnóstico</label><input type="text" id="plantilla-dx-nuevo" placeholder="Ej: Faringoamigdalitis Aguda"></div><button type="button" class="btn" id="btn-guardar-plantilla-dx">Guardar</button><div id="plantillas-dx-lista" class="list-item-container" style="margin-top: 15px;"></div></div><div id="tab-med" class="tab-content"><h3>Plantillas de Medicamentos</h3><div class="form-group"><label>Nombre y presentación</label><input type="text" id="plantilla-med-nombre" placeholder="Ej: Amoxicilina 500mg"></div><div class="form-group"><label>Indicación</label><input type="text" id="plantilla-med-indicacion" placeholder="Ej: Tomar 1 tableta VO c/8h por 7 días"></div><button type="button" class="btn" id="btn-guardar-plantilla-med">Guardar</button><div id="plantillas-med-lista" class="list-item-container" style="margin-top: 15px;"></div></div></div></div>
+    
+    <div id="modal-confirmacion" class="modal"><div class="modal-content confirm"><h3>Confirmar Acción</h3><p>¿Seguro que deseas limpiar el formulario? Se perderán los datos no guardados.</p><div class="btn-group"><button type="button" class="btn" id="btn-confirmar-si">Sí</button><button type="button" class="btn btn-secondary" id="btn-confirmar-no">No</button></div></div></div>
+
+    <div id="modal-datos" class="modal"><div class="modal-content"><span class="modal-close" id="close-modal-datos">&times;</span><h2>Importar y Exportar Respaldo</h2><p>Guarda un respaldo de todos tus datos (médico, logos, plantillas e historial) en un solo archivo JSON. También puedes restaurar un respaldo previo.</p><p><strong>Nota:</strong> Al importar, se sobrescribirán todos los datos actuales.</p><div class="main-buttons" style="border:none; padding:0; margin-top:20px;"><button type="button" class="btn" id="btn-exportar-datos"><i class="fa fa-download"></i> Exportar Respaldo</button><label for="import-file-input" class="btn btn-secondary"><i class="fa fa-upload"></i> Importar Respaldo</label><input type="file" id="import-file-input" accept=".json" style="display: none;"></div></div></div>
+    
+    <div id="modal-padron" class="modal"><div class="modal-content"><span class="modal-close" id="close-modal-padron">&times;</span><h2>Padrón de Pacientes</h2><p>Carga datos demográficos de pacientes guardados. El padrón se actualiza automáticamente cada vez que guardas una nueva receta.</p><input type="text" id="padron-busqueda" placeholder="Buscar por nombre de paciente..." style="margin-bottom: 15px; padding-left: 15px; width: 100%;"><div id="padron-lista" class="list-item-container"></div></div></div>
+
+    <div id="modal-certificado" class="modal">
+      <div class="modal-content modal-lg">
+        <span class="modal-close" id="close-modal-certificado">&times;</span>
+        <h2>Generar Certificado Médico</h2>
+        
+        <div class="form-grid" style="grid-template-columns: 2fr 1fr;">
+          <div class="form-group">
+              <label for="certificado-paciente">A quien corresponda, hago constar que el/la Paciente:</label>
+              <input type="text" id="certificado-paciente" placeholder="Nombre completo del paciente" required>
+          </div>
+          <div class="form-group">
+              <label for="certificado-edad">Edad:</label>
+              <input type="text" id="certificado-edad" placeholder="Edad del paciente" required>
+          </div>
+        </div>
+        
+        <div class="form-group" style="margin-top: 15px;">
+            <label for="certificado-motivo">Acudió a valoración médica el día de hoy por presentar:</label>
+            <textarea id="certificado-motivo" placeholder="Ej: Cuadro clínico de 3 días de evolución compatible con Faringoamigdalitis Aguda..." required></textarea>
+        </div>
+
+        <div class="form-grid" style="margin-top: 15px;">
+          <div class="form-group">
+              <label for="certificado-dias">Se recomienda reposo laboral/escolar por:</label>
+              <input type="number" id="certificado-dias" placeholder="Ej: 3" required>
+          </div>
+          <div class="form-group">
+              <label for="certificado-dias-texto">en días</label>
+              <select id="certificado-dias-texto" class="btn-secondary" style="padding-left: 10px; color: white;">
+                  <option value="días">días</option>
+                  <option value="horas">horas</option>
+              </select>
+          </div>
+          <div class="form-group">
+              <label for="certificado-fecha-inicio">A partir del día:</label>
+              <input type="date" id="certificado-fecha-inicio" required>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+            <label for="certificado-recomendaciones">Indicaciones y recomendaciones adicionales (opcional):</label>
+            <textarea id="certificado-recomendaciones" placeholder="Ej: Continuar con tratamiento médico, evitar cambios bruscos de temperatura..."></textarea>
+        </div>
+
+        <div class="main-buttons" style="border:none; padding:0; margin-top:20px;">
+          <button type="button" class="btn" id="btn-vista-previa-certificado"><i class="fa fa-eye"></i> Mostrar Vista Previa</button>
+          <button type="button" class="btn" id="btn-generar-pdf-certificado"><i class="fa fa-file-pdf"></i> Generar PDF</button>
+        </div>
+
+        <hr style="margin: 20px 0;">
+        
+        <div id="vista-previa-certificado" aria-live="polite">
+          </div>
+
+      </div>
+    </div>
+    <div id="toast-notification" style="visibility: hidden; min-width: 250px; margin-left: -125px; background-color: var(--primary-color); color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 2000; left: 50%; bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);"></div>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- FUNCIÓN TOAST NOTIFICATION ---
+        let toastTimeout;
+        function mostrarToast(mensaje) {
+            const toast = document.getElementById('toast-notification');
+            if (!toast) return;
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toast.textContent = mensaje;
+            toast.style.visibility = 'visible';
+            toast.style.opacity = '1';
+            toast.style.transition = 'opacity 0.3s, visibility 0.3s';
+            toastTimeout = setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.visibility = 'hidden';
+            }, 2500);
+        }
+        
+        // --- NUEVO: FUNCIONES PARA TEXTAREA AUTOAJUSTABLE ---
+        const autoResizeTextarea = (textarea) => {
+            if (textarea) {
+                textarea.style.height = 'auto'; // Resetea la altura
+                textarea.style.height = (textarea.scrollHeight) + 'px'; // Ajusta a la altura del contenido
+            }
+        };
+
+        // Listener global para autoajustar textareas al escribir
+        document.body.addEventListener('input', (event) => {
+            if (event.target.classList.contains('autoresize-textarea')) {
+                autoResizeTextarea(event.target);
+            }
+        });
+        // --- FIN FUNCIONES TEXTAREA ---
+
+        // ===== BASE DE DATOS CIE-10 (SELECCIÓN) =====
+        const CIE10_DIAGNOSES = [
+            // ... (Tu larga lista de diagnósticos va aquí) ...
+            "Degeneracion macular - H353"
+        ];
+        // ----- FIN DE LA LISTA CIE-10 -----
+
+
+        // ===== ESTADO DE LA APLICACIÓN Y DATOS GUARDADOS =====
+        let datosMedico = JSON.parse(localStorage.getItem('recetario_medico')) || {};
+        let logos = JSON.parse(localStorage.getItem('recetario_logos')) || { izquierdo: null, derecho: null };
+        let plantillas = JSON.parse(localStorage.getItem('recetario_plantillas')) || { diagnosticos: [], medicamentos: [] };
+        let historial = JSON.parse(localStorage.getItem('recetario_historial')) || [];
+        let padronPacientes = JSON.parse(localStorage.getItem('recetario_padron')) || [];
+
+        // ===== MANEJO DE EVENTOS DE FORMULARIO =====
+        const pesoInput = document.getElementById('peso');
+        const tallaInput = document.getElementById('talla');
+        const imcInput = document.getElementById('imc');
+        const fechaNacimientoInput = document.getElementById('paciente-fecha-nacimiento');
+        const edadInput = document.getElementById('paciente-edad');
+
+        const calcularIMC = () => {
+            const peso = parseFloat(pesoInput.value);
+            const tallaCm = parseFloat(tallaInput.value);
+            imcInput.value = (!peso || !tallaCm) ? '' : (peso / ((tallaCm / 100) ** 2)).toFixed(1);
+        };
+
+        const calcularEdad = () => {
+            if (!fechaNacimientoInput.value) {
+                edadInput.value = "";
+                return;
+            }
+            const fechaNacimiento = new Date(fechaNacimientoInput.value);
+            const hoy = new Date();
+            let anios = hoy.getFullYear() - fechaNacimiento.getFullYear();
+            let meses = hoy.getMonth() - fechaNacimiento.getMonth();
+            
+            if (hoy.getDate() < fechaNacimiento.getDate()) {
+                meses--;
+            }
+            if (meses < 0) {
+                anios--;
+                meses += 12;
+            }
+            
+            if (anios < 2) {
+                const totalMeses = anios * 12 + meses;
+                edadInput.value = `${totalMeses} mes(es)`;
+            } else {
+                edadInput.value = `${anios} años`;
+            }
+        };
+
+        pesoInput.addEventListener('input', calcularIMC);
+        tallaInput.addEventListener('input', calcularIMC);
+        fechaNacimientoInput.addEventListener('input', calcularEdad);
+        
+        // ===== LÓGICA DE MODALES =====
+        const setupModal = (modalId, openBtnId, closeBtnId) => {
+            const modal = document.getElementById(modalId);
+            if (openBtnId) document.getElementById(openBtnId).addEventListener('click', () => modal.style.display = 'block');
+            if (closeBtnId) document.getElementById(closeBtnId).addEventListener('click', () => modal.style.display = 'none');
+            return modal;
+        };
+        
+        const modalMedico = setupModal('modal-medico', 'btn-open-modal-medico', 'close-modal-medico');
+        const modalLogos = setupModal('modal-logos', 'btn-open-modal-logos', 'close-modal-logos');
+        const modalHistorial = setupModal('modal-historial', 'btn-open-modal-historial', 'close-modal-historial');
+        const modalPlantillas = setupModal('modal-plantillas', 'btn-open-modal-plantillas', 'close-modal-plantillas');
+        const modalConfirmacion = setupModal('modal-confirmacion', null, null);
+        const modalDatos = setupModal('modal-datos', 'btn-open-modal-datos', 'close-modal-datos');
+        const modalPadron = setupModal('modal-padron', 'btn-open-modal-padron', 'close-modal-padron');
+        const modalCertificado = setupModal('modal-certificado', 'btn-open-modal-certificado', 'close-modal-certificado');
+        
+        window.onclick = (event) => {
+            if (event.target.classList.contains('modal')) event.target.style.display = 'none';
+        };
+
+        // Guardar Datos del Médico
+        document.getElementById('btn-open-modal-medico').addEventListener('click', () => {
+            for (const key in datosMedico) {
+                const el = document.getElementById(`medico-${key}`);
+                if (el) el.value = datosMedico[key];
+            }
+        });
+        document.getElementById('btn-guardar-medico').addEventListener('click', () => {
+            datosMedico = {
+                nombre: document.getElementById('medico-nombre').value.trim(),
+                especialidad: document.getElementById('medico-especialidad').value.trim(),
+                cedula: document.getElementById('medico-cedula').value.trim(),
+                universidad: document.getElementById('medico-universidad').value.trim(),
+                direccion: document.getElementById('medico-direccion').value.trim(),
+                contacto: document.getElementById('medico-contacto').value.trim(),
+            };
+            localStorage.setItem('recetario_medico', JSON.stringify(datosMedico));
+            modalMedico.style.display = 'none';
+            mostrarToast('Datos del médico guardados.');
+        });
+
+        // Guardar Logos
+        const handleLogoFile = (fileInput, urlInput, logoKey) => {
+            const file = fileInput.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                logos[logoKey] = e.target.result;
+                urlInput.value = 'Archivo local cargado.';
+            };
+            reader.readAsDataURL(file);
+        };
+        document.getElementById('logo-izquierdo-file').addEventListener('change', () => handleLogoFile(document.getElementById('logo-izquierdo-file'), document.getElementById('logo-izquierdo-url'), 'izquierdo'));
+        document.getElementById('logo-derecho-file').addEventListener('change', () => handleLogoFile(document.getElementById('logo-derecho-file'), document.getElementById('logo-derecho-url'), 'derecho'));
+        document.getElementById('btn-guardar-logos').addEventListener('click', () => {
+            const urlIzq = document.getElementById('logo-izquierdo-url').value.trim();
+            if (urlIzq && urlIzq !== 'Archivo local cargado.') logos.izquierdo = urlIzq;
+            const urlDer = document.getElementById('logo-derecho-url').value.trim();
+            if (urlDer && urlDer !== 'Archivo local cargado.') logos.derecho = urlDer;
+            localStorage.setItem('recetario_logos', JSON.stringify(logos));
+            modalLogos.style.display = 'none';
+            mostrarToast('Logos guardados.');
+        });
+
+        // ===== FORMULARIOS DINÁMICOS =====
+        let dxCount = 0;
+        const agregarDiagnostico = (valor = '') => {
+            dxCount++;
+            const container = document.getElementById('diagnosticos-container');
+            const newItem = document.createElement('div');
+            newItem.className = 'item';
+            newItem.innerHTML = `
+                <div class="item-header">Diagnóstico ${dxCount}</div>
+                <button type="button" class="btn btn-danger btn-sm delete-btn"><i class="fa fa-times"></i></button>
+                <div class="form-group autocomplete-container full-width">
+                    <input type="text" class="diagnostico-input" placeholder="Escriba un diagnóstico..." value="${valor}" required>
+                </div>
+            `;
+            newItem.querySelector('.delete-btn').addEventListener('click', () => newItem.remove());
+            container.appendChild(newItem);
+        };
+        document.getElementById('btn-agregar-diagnostico').addEventListener('click', () => agregarDiagnostico());
+        agregarDiagnostico(); // Add the first one by default
+
+        let medCount = 0;
+        const agregarMedicamento = (nombre = '', indicacion = '') => {
+            medCount++;
+            const container = document.getElementById('medicamentos-container');
+            const newItem = document.createElement('div');
+            newItem.className = 'item';
+            
+            // --- CAMBIO: Se usan <textarea> en lugar de <input> ---
+            // Se usa .autoresize-textarea y se rellena el contenido entre las etiquetas
+            newItem.innerHTML = `
+                <div class="item-header">Medicamento ${medCount}</div>
+                <button type="button" class="btn btn-danger btn-sm delete-btn"><i class="fa fa-times"></i></button>
+                <div class="item-grid">
+                    <div class="form-group autocomplete-container"><label>Medicamento y presentación</label>
+                        <textarea class="medicamento-nombre autoresize-textarea" rows="1" placeholder="Ej: Paracetamol 500mg - Caja 20 tabs" required>${nombre}</textarea>
+                    </div>
+                    <div class="form-group"><label>Dosis, Vía, Frecuencia, Duración</label>
+                        <textarea class="medicamento-indicacion autoresize-textarea" rows="1" placeholder="Ej: Tomar 1 tab VO c/8h por 3 días" required>${indicacion}</textarea>
+                    </div>
+                </div>
+            `;
+            // --- FIN DEL CAMBIO ---
+
+            newItem.querySelector('.delete-btn').addEventListener('click', () => newItem.remove());
+            container.appendChild(newItem);
+
+            // --- NUEVO: Autoajustar los textareas al crearlos (para historial/plantillas) ---
+            newItem.querySelectorAll('.autoresize-textarea').forEach(textarea => {
+                // Se usa setTimeout para esperar que el DOM se actualice
+                setTimeout(() => autoResizeTextarea(textarea), 0);
+            });
+            // --- FIN ---
+        };
+        document.getElementById('btn-agregar-medicamento').addEventListener('click', () => agregarMedicamento());
+
+        let estCount = 0;
+        const agregarEstudio = (nombre = '', indicacion = '') => {
+            estCount++;
+            const container = document.getElementById('estudios-container');
+            const newItem = document.createElement('div');
+            newItem.className = 'item';
+            newItem.innerHTML = `
+                <div class="item-header">Estudio ${estCount}</div>
+                <button type="button" class="btn btn-danger btn-sm delete-btn"><i class="fa fa-times"></i></button>
+                <div class="form-group full-width"><label>Nombre del Estudio Solicitado</label><input type="text" class="estudio-nombre" placeholder="Ej: Biometría Hemática Completa" value="${nombre}"></div>
+                <div class="form-group full-width"><label>Indicaciones para el Estudio (Opcional)</label><input type="text" class="estudio-indicacion" placeholder="Ej: Ayuno de 8 horas" value="${indicacion}"></div>
+            `;
+            newItem.querySelector('.delete-btn').addEventListener('click', () => newItem.remove());
+            container.appendChild(newItem);
+        };
+        document.getElementById('btn-agregar-estudio').addEventListener('click', () => agregarEstudio());
+
+        // ===== VALIDACIÓN Y RECOPILACIÓN DE DATOS =====
+        const recopilarDatosFormulario = (validar = false) => {
+            let errores = [];
+            let datos = {};
+
+            const camposRequeridos = [
+                { id: 'paciente-nombre', nombre: 'Nombre del Paciente' }, { id: 'paciente-edad', nombre: 'Edad del Paciente' },
+                { id: 'paciente-sexo', nombre: 'Sexo del Paciente' }, { id: 'peso', nombre: 'Peso' },
+                { id: 'talla', nombre: 'Talla' }, { id: 'imc', nombre: 'IMC' },
+                { id: 'fc', nombre: 'Frecuencia Cardíaca' }, { id: 'fr', nombre: 'Frecuencia Respiratoria' },
+                { id: 'temp', nombre: 'Temperatura' },
+            ];
+            
+            camposRequeridos.forEach(campo => {
+                const el = document.getElementById(campo.id);
+                if (validar && !el.value) errores.push(campo.nombre);
+                datos[campo.id] = el.value.trim();
+            });
+            
+            datos['paciente-fecha-nacimiento'] = document.getElementById('paciente-fecha-nacimiento').value;
+            datos.alergias = document.getElementById('alergias').value.trim() || 'NINGUNA REFERIDA';
+            datos.ta = `${document.getElementById('ta-sistolica').value.trim()}/${document.getElementById('ta-diastolica').value.trim()}`;
+            datos.spo2 = document.getElementById('spo2').value.trim();
+            datos.glucosa = document.getElementById('glucosa').value.trim();
+            datos.glucosaTipo = document.getElementById('glucosa-tipo').value;
+            datos.indicacionesGenerales = document.getElementById('indicaciones-generales').value.trim();
+
+            const diagnosticosInputs = document.querySelectorAll('.diagnostico-input');
+            datos.diagnostico = Array.from(diagnosticosInputs).map(input => input.value.trim()).filter(Boolean).join('\n');
+            if (validar && !datos.diagnostico) errores.push("Al menos un diagnóstico es requerido");
+
+            datos.medicamentos = [];
+            const medicamentosItems = document.querySelectorAll('#medicamentos-container .item');
+            if (validar && medicamentosItems.length === 0) errores.push("Al menos un medicamento es requerido");
+            
+            // --- CAMBIO: Se leen los .value de los <textarea> ---
+            medicamentosItems.forEach((item, index) => {
+                const nombre = item.querySelector('.medicamento-nombre').value.trim();
+                const indicacion = item.querySelector('.medicamento-indicacion').value.trim();
+                if (validar && (!nombre || !indicacion)) errores.push(`Medicamento ${index + 1} está incompleto`);
+                datos.medicamentos.push({ nombre, indicacion });
+            });
+            // --- FIN DEL CAMBIO ---
+
+            datos.estudios = [];
+            document.querySelectorAll('#estudios-container .item').forEach(item => {
+                const nombre = item.querySelector('.estudio-nombre').value.trim();
+                if (nombre) datos.estudios.push({ nombre, indicacion: item.querySelector('.estudio-indicacion').value.trim() });
+            });
+
+            if (validar && errores.length > 0) {
+                alert("Por favor, corrija los siguientes errores:\n- " + errores.join("\n- "));
+                return null;
+            }
+            return datos;
+        };
+
+        // ===== GENERACIÓN DE VISTA PREVIA Y PDF (RECETA) =====
+        
+        const ajustarTamanioFuente = (container, selectorsToShrink, startSize, minSize) => {
+            const elements = container.querySelectorAll(selectorsToShrink);
+            let currentSize = startSize;
+            elements.forEach(el => el.style.fontSize = currentSize + 'pt');
+            const originalOverflow = container.style.overflow;
+            container.style.overflow = 'visible';
+            while (container.scrollHeight > container.clientHeight && currentSize > minSize) {
+                currentSize -= 0.5;
+                elements.forEach(el => el.style.fontSize = currentSize + 'pt');
+            }
+            container.style.overflow = originalOverflow;
+        };
+
+        document.getElementById('btn-vista-previa').addEventListener('click', () => {
+            document.body.classList.remove('printing-certificado');
+            document.body.classList.add('printing-receta');
+            const datos = recopilarDatosFormulario(false);
+            if (!datos) return;
+            const fechaElaboracion = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+            const tamano = document.getElementById('select-tamano').value;
+            const vistaPrevia = document.getElementById('vista-previa');
+            let html = '';
+            let style = '';
+            switch (tamano) {
+                case 'carta':
+                    style = 'width: 8.5in; height: 11in;';
+                    html = generarHtmlReceta(datos, fechaElaboracion, '', false);
+                    break;
+                case 'media-carta-individual':
+                    style = 'width: 8.5in; height: 5.5in;';
+                    html = generarHtmlReceta(datos, fechaElaboracion, '', true);
+                    break;
+                case 'media-carta-doble':
+                    style = 'width: 8.5in; height: 11in;';
+                    const recetaOriginalHtml = generarHtmlReceta(datos, fechaElaboracion, '<b>RECETA ORIGINAL</b>', true);
+                    const recetaCopiaHtml = generarHtmlReceta(datos, fechaElaboracion, '<b>COPIA</b>', true);
+                    html = `<div class="recipe-content-wrapper" style="height: 5.5in; width: 100%; border-bottom: 2px dashed #999; box-sizing: border-box; position: relative;">${recetaOriginalHtml}</div>
+                            <div class="recipe-content-wrapper" style="height: 5.5in; width: 100%; box-sizing: border-box; position: relative;">${recetaCopiaHtml}</div>`;
+                    break;
+            }
+            vistaPrevia.style.cssText = style + "border: 1px solid #ccc;";
+            vistaPrevia.innerHTML = html;
+            if (tamano === 'media-carta-individual' || tamano === 'media-carta-doble') {
+                setTimeout(() => {
+                    const recipeWrappers = vistaPrevia.querySelectorAll('.recipe-content');
+                    recipeWrappers.forEach(wrapper => {
+                        ajustarTamanioFuente(wrapper, 'main, footer', 10, 7);
+                    });
+                }, 100);
+            }
+        });
+
+        const generarHtmlReceta = (datos, fechaElaboracion, leyendaFooter = '', ajustar = false) => {
+            // --- CAMBIO: Se reemplazan \n (de textareas) por <br> para la vista previa ---
+            const medicamentosHtml = datos.medicamentos.map(m => `<div style="margin-bottom: 8px;"><strong>• ${m.nombre.replace(/\n/g, '<br>')}:</strong> ${m.indicacion.replace(/\n/g, '<br>')}</div>`).join('');
+            
+            const estudiosHtml = datos.estudios.map(e => `<div style="margin-bottom: 8px;"><strong>• ${e.nombre}:</strong> ${e.indicacion || ''}</div>`).join('');
+            const glucosaHtml = datos.glucosa ? `| Glucosa: ${datos.glucosa} mg/dL ${datos.glucosaTipo ? '('+datos.glucosaTipo+')' : ''} ` : '';
+            const spo2Html = datos.spo2 ? `| SpO₂: ${datos.spo2}% ` : '';
+            const leyendaHtml = leyendaFooter ? `<div style="text-align: center; flex-grow: 1; margin-left: 20px;">${leyendaFooter}</div>` : '';
+            const [year, month, day] = datos['paciente-fecha-nacimiento'].split('-');
+            const fechaNacimientoFormateada = (day && month && year) ? `${day}/${month}/${year}` : '';
+            const pacienteFontSize = ajustar ? '10pt' : '11pt';
+            const direccionFontSize = ajustar ? '8pt' : '9pt';
+            const padding = ajustar ? '0.3in 0.5in' : '0.5in';
+            const contactoHtml = datosMedico.contacto ? `<br><strong>Contacto:</strong> ${datosMedico.contacto}` : '';
+            return `
+                <div class="recipe-content" style="padding: ${padding}; font-family: 'Helvetica', Arial, sans-serif; height: 100%; width: 100%; position: relative; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden;">
+                    <header style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 10px; flex-shrink: 0;">
+                        <img src="${logos.izquierdo || 'https://via.placeholder.com/140x90?text=Logo'}" alt="Logo Izquierdo" style="max-height: 90px; max-width: 140px; object-fit: contain;">
+                        <div style="text-align: center; flex-grow: 1; padding: 0 10px;">
+                            <h3 style="margin: 0; font-size: 15.5pt;">${datosMedico.nombre || 'Nombre del Médico'}</h3>
+                            <p style="margin: 2px 0; font-size: 11pt;">${datosMedico.especialidad || 'Especialidad'}</p>
+                            <p style="margin: 2px 0; font-size: 11pt;">Céd. Prof. ${datosMedico.cedula || 'N/A'}</p>
+                            <p style="margin: 2px 0; font-size: 11pt;">${datosMedico.universidad || 'Universidad'}</p>
+                        </div>
+                        <img src="${logos.derecho || 'https://via.placeholder.com/140x90?text=Logo'}" alt="Logo Derecho" style="max-height: 90px; max-width: 140px; object-fit: contain;">
+                    </header>
+                    <section class="patient-data" style="margin-top: 1em; border-bottom: 1px solid #ccc; padding-bottom: 0.7em; line-height: 1.4; font-size: ${pacienteFontSize}; flex-shrink: 0;">
+                        <div style="display: flex; justify-content: space-between;"><span><strong>Paciente:</strong> ${datos['paciente-nombre']}</span><span><strong>F. Nac:</strong> ${fechaNacimientoFormateada}</span><span><strong>Edad:</strong> ${datos['paciente-edad']}</span><span><strong>Sexo:</strong> ${datos['paciente-sexo']}</span></div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 0.3em;"><span><strong>Alergias:</strong> ${datos.alergias}</span><span><strong>Fecha:</strong> ${fechaElaboracion}</span></div>
+                    </section>
+                    <section class="vital-signs" style="margin-top: 0.7em; border-bottom: 1px solid #ccc; padding-bottom: 0.7em; font-size: 9pt; line-height: 1.4; flex-shrink: 0;">
+                        <strong>Signos Vitales:</strong> TA: ${datos.ta} mmHg | FC: ${datos.fc} lpm | FR: ${datos.fr} rpm | Temp: ${datos.temp} °C ${spo2Html} ${glucosaHtml} | Peso: ${datos.peso} kg | Talla: ${datos.talla} cm | IMC: ${datos.imc}
+                    </section>
+                    <main style="padding-top: 1em; flex-grow: 1; line-height: 1.5;">
+                        <p><strong>Diagnóstico(s):</strong></p><p style="white-space: pre-wrap; margin-left: 1.5em;">${datos.diagnostico}</p>
+                        <p style="margin-top: 1.2em;"><strong>Tratamiento:</strong></p><div style="margin-left: 1.5em; margin-top: 0.5em;">${medicamentosHtml}</div>
+                        ${estudiosHtml ? `<p style="margin-top: 1.2em;"><strong>Estudios Solicitados:</strong></p><div style="margin-left: 1.5em; margin-top: 0.5em;">${estudiosHtml}</div>` : ''}
+                        ${datos.indicacionesGenerales ? `<p style="margin-top: 1.2em;"><strong>Indicaciones Generales:</strong></p><p style="white-space: pre-wrap; margin-left: 1.5em;">${datos.indicacionesGenerales}</p>` : ''}
+                    </main>
+                    <footer style="padding-top: 1.5em; flex-shrink: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div class="footer-address" style="flex-basis: 45%; max-width: 45%; font-size: ${direccionFontSize};">${datosMedico.direccion || 'Dirección del consultorio...'}${contactoHtml}</div>
+                            ${leyendaHtml}
+                            <div class="footer-signature" style="text-align: center; flex-basis: 150px; flex-shrink: 0; font-size: 10pt;"><div style="border-bottom: 1px solid #000; margin-bottom: 5px;"></div>Firma del Médico</div>
+                        </div>
+                    </footer>
+                </div>`;
+        };
+
+        document.getElementById('btn-generar-pdf').addEventListener('click', () => {
+            const vistaPrev = document.getElementById('vista-previa');
+            if (!vistaPrev.innerHTML.trim()) { alert('Primero debe generar la "Vista Previa".'); return; }
+            document.body.classList.remove('printing-certificado');
+            document.body.classList.add('printing-receta');
+            const { jsPDF } = window.jspdf;
+            const tamano = document.getElementById('select-tamano').value;
+            let options = { orientation: 'p', unit: 'in' };
+            if (tamano === 'carta' || tamano === 'media-carta-doble') options.format = 'letter';
+            if (tamano === 'media-carta-individual') { options.format = [8.5, 5.5]; options.orientation = 'l'; }
+            const pdf = new jsPDF(options);
+            html2canvas(vistaPrev, { scale: 2, useCORS: true, logging: false }).then(canvas => {
+                const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+                pdf.save(`receta_${tamano}.pdf`);
+            });
+        });
+
+        const limpiarFormularioCompleto = () => {
+            document.getElementById('form-receta').reset();
+            document.getElementById('diagnosticos-container').innerHTML = '';
+            agregarDiagnostico();
+            document.getElementById('medicamentos-container').innerHTML = '';
+            document.getElementById('estudios-container').innerHTML = '';
+            document.getElementById('vista-previa').innerHTML = '';
+            document.getElementById('vista-previa').style.cssText = '';
+            medCount = 0;
+            estCount = 0;
+            dxCount = 0;
+            calcularIMC();
+            calcularEdad();
+        };
+
+        document.getElementById('btn-limpiar').addEventListener('click', () => {
+            modalConfirmacion.style.display = 'block';
+        });
+        document.getElementById('btn-confirmar-si').addEventListener('click', () => {
+            limpiarFormularioCompleto();
+            modalConfirmacion.style.display = 'none';
+        });
+        document.getElementById('btn-confirmar-no').addEventListener('click', () => {
+            modalConfirmacion.style.display = 'none';
+        });
+
+        // ===== HISTORIAL =====
+        const renderizarHistorial = (filtro = '') => {
+            const lista = document.getElementById('historial-lista');
+            lista.innerHTML = '';
+            const historialFiltrado = historial.filter(rec => rec.datos['paciente-nombre'].toLowerCase().includes(filtro.toLowerCase()));
+            historialFiltrado.forEach((rec, index) => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `
+                    <div>
+                        <strong>${rec.datos['paciente-nombre']}</strong><br>
+                        <small>${new Date(rec.fecha).toLocaleString()}</small>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-sm" data-index="${index}"><i class="fa fa-upload"></i> Cargar</button>
+                        <button type="button" class="btn btn-danger btn-sm" data-index="${index}"><i class="fa fa-trash"></i> Borrar</button>
+                    </div>
+                `;
+                item.querySelector('.btn-sm').addEventListener('click', () => cargarDesdeHistorial(index));
+                item.querySelector('.btn-danger').addEventListener('click', () => borrarDeHistorial(index));
+                lista.appendChild(item);
+            });
+        };
+        
+        document.getElementById('btn-open-modal-historial').addEventListener('click', () => renderizarHistorial());
+        document.getElementById('historial-busqueda').addEventListener('input', (e) => renderizarHistorial(e.target.value));
+
+        document.getElementById('btn-guardar-receta').addEventListener('click', () => {
+            const datos = recopilarDatosFormulario(true);
+            if (!datos) return;
+            historial.unshift({ fecha: new Date().toISOString(), datos });
+            localStorage.setItem('recetario_historial', JSON.stringify(historial));
+            guardarActualizarPadron(datos); 
+            mostrarToast('Receta guardada en el historial.');
+        });
+
+        const cargarDesdeHistorial = (index) => {
+            const record = historial[index];
+            if (!record) return;
+            limpiarFormularioCompleto();
+            document.getElementById('diagnosticos-container').innerHTML = '';
+            for (const key in record.datos) {
+                const el = document.getElementById(key);
+                if (el) el.value = record.datos[key];
+            }
+            record.datos.diagnostico.split('\n').forEach(dx => agregarDiagnostico(dx));
+            calcularEdad();
+            calcularIMC();
+            record.datos.medicamentos.forEach(med => agregarMedicamento(med.nombre, med.indicacion));
+            record.datos.estudios.forEach(est => agregarEstudio(est.nombre, est.indicacion));
+            modalHistorial.style.display = 'none';
+        };
+
+        const borrarDeHistorial = (index) => {
+            if (confirm('¿Seguro que deseas eliminar este registro del historial?')) {
+                historial.splice(index, 1);
+                localStorage.setItem('recetario_historial', JSON.stringify(historial));
+                renderizarHistorial(document.getElementById('historial-busqueda').value);
+            }
+        };
+
+        // ===== PADRÓN DE PACIENTES =====
+        const guardarActualizarPadron = (datosReceta) => {
+            const datosPaciente = {
+                id: datosReceta['paciente-nombre'].trim().toLowerCase(),
+                nombre: datosReceta['paciente-nombre'].trim(),
+                fechaNacimiento: datosReceta['paciente-fecha-nacimiento'],
+                sexo: datosReceta['paciente-sexo'],
+                alergias: datosReceta['alergias']
+            };
+            if (!datosPaciente.id) return;
+            const indiceExistente = padronPacientes.findIndex(p => p.id === datosPaciente.id);
+            if (indiceExistente > -1) {
+                padronPacientes[indiceExistente] = datosPaciente;
+            } else {
+                padronPacientes.unshift(datosPaciente);
+            }
+            localStorage.setItem('recetario_padron', JSON.stringify(padronPacientes));
+        };
+        const renderizarPadron = (filtro = '') => {
+            const lista = document.getElementById('padron-lista');
+            lista.innerHTML = '';
+            const filtroLower = filtro.toLowerCase();
+            const padronFiltrado = padronPacientes.filter(p => p.nombre.toLowerCase().includes(filtroLower));
+            if (padronFiltrado.length === 0) {
+                lista.innerHTML = '<p style="text-align:center; color:#777;">No hay pacientes en el padrón.</p>';
+                return;
+            }
+            padronFiltrado.forEach((paciente) => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                const alergiasTxt = (paciente.alergias && paciente.alergias.toUpperCase() !== 'NINGUNA REFERIDA') ? paciente.alergias : 'Ninguna';
+                item.innerHTML = `
+                    <div>
+                        <strong>${paciente.nombre}</strong><br>
+                        <small>F.Nac: ${paciente.fechaNacimiento || 'N/A'} | Alergias: ${alergiasTxt}</small>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-sm" data-id="${paciente.id}"><i class="fa fa-upload"></i> Cargar</button>
+                        <button type="button" class="btn btn-danger btn-sm" data-id="${paciente.id}"><i class="fa fa-trash"></i> Borrar</button>
+                    </div>
+                `;
+                item.querySelector('.btn-sm').addEventListener('click', () => {
+                    cargarDesdePadron(paciente.id);
+                    modalPadron.style.display = 'none';
+                });
+                item.querySelector('.btn-danger').addEventListener('click', () => {
+                    borrarDePadron(paciente.id);
+                    renderizarPadron(document.getElementById('padron-busqueda').value);
+                });
+                lista.appendChild(item);
+            });
+        };
+        const cargarDesdePadron = (pacienteId) => {
+            const paciente = padronPacientes.find(p => p.id === pacienteId);
+            if (!paciente) return;
+            document.getElementById('paciente-nombre').value = paciente.nombre || '';
+            document.getElementById('paciente-fecha-nacimiento').value = paciente.fechaNacimiento || '';
+            document.getElementById('paciente-sexo').value = paciente.sexo || '';
+            const alergiasLimpias = (paciente.alergias && paciente.alergias.toUpperCase() !== 'NINGUNA REFERIDA') ? paciente.alergias : '';
+            document.getElementById('alergias').value = alergiasLimpias;
+            calcularEdad();
+            mostrarToast(`Paciente "${paciente.nombre}" cargado.`);
+        };
+        const borrarDePadron = (pacienteId) => {
+            if (confirm('¿Seguro que deseas eliminar este paciente del padrón? (Esto no afecta el historial de recetas).')) {
+                padronPacientes = padronPacientes.filter(p => p.id !== pacienteId);
+                localStorage.setItem('recetario_padron', JSON.stringify(padronPacientes));
+                mostrarToast('Paciente eliminado del padrón.');
+            }
+        };
+        document.getElementById('btn-open-modal-padron').addEventListener('click', () => renderizarPadron());
+        document.getElementById('padron-busqueda').addEventListener('input', (e) => renderizarPadron(e.target.value));
+
+        // ===== PLANTILLAS =====
+        const renderizarPlantillas = () => {
+            const dxLista = document.getElementById('plantillas-dx-lista');
+            dxLista.innerHTML = '';
+            plantillas.diagnosticos.forEach((dx, index) => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `<span>${dx}</span><div><button class="btn btn-sm" data-index="${index}">Usar</button><button class="btn btn-danger btn-sm" data-index="${index}">X</button></div>`;
+                item.querySelector('.btn-sm').addEventListener('click', () => {
+                    agregarDiagnostico(dx);
+                    modalPlantillas.style.display = 'none';
+                });
+                item.querySelector('.btn-danger').addEventListener('click', () => {
+                    plantillas.diagnosticos.splice(index, 1);
+                    localStorage.setItem('recetario_plantillas', JSON.stringify(plantillas));
+                    renderizarPlantillas();
+                });
+                dxLista.appendChild(item);
+            });
+            const medLista = document.getElementById('plantillas-med-lista');
+            medLista.innerHTML = '';
+            plantillas.medicamentos.forEach((med, index) => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `<div><strong>${med.nombre}</strong><br><small>${med.indicacion}</small></div><div><button class="btn btn-sm" data-index="${index}">Usar</button><button class="btn btn-danger btn-sm" data-index="${index}">X</button></div>`;
+                item.querySelector('.btn-sm').addEventListener('click', () => {
+                    agregarMedicamento(med.nombre, med.indicacion);
+                    modalPlantillas.style.display = 'none';
+                });
+                item.querySelector('.btn-danger').addEventListener('click', () => {
+                    plantillas.medicamentos.splice(index, 1);
+                    localStorage.setItem('recetario_plantillas', JSON.stringify(plantillas));
+                    renderizarPlantillas();
+                });
+                medLista.appendChild(item);
+            });
+        };
+        document.getElementById('btn-open-modal-plantillas').addEventListener('click', renderizarPlantillas);
+        document.getElementById('btn-guardar-plantilla-dx').addEventListener('click', () => {
+            const nuevoDx = document.getElementById('plantilla-dx-nuevo').value.trim();
+            if (nuevoDx && !plantillas.diagnosticos.includes(nuevoDx)) {
+                plantillas.diagnosticos.push(nuevoDx);
+                localStorage.setItem('recetario_plantillas', JSON.stringify(plantillas));
+                document.getElementById('plantilla-dx-nuevo').value = '';
+                renderizarPlantillas();
+            }
+        });
+        document.getElementById('btn-guardar-plantilla-med').addEventListener('click', () => {
+            const nombre = document.getElementById('plantilla-med-nombre').value.trim();
+            const indicacion = document.getElementById('plantilla-med-indicacion').value.trim();
+            if (nombre && indicacion) {
+                plantillas.medicamentos.push({ nombre, indicacion });
+                localStorage.setItem('recetario_plantillas', JSON.stringify(plantillas));
+                document.getElementById('plantilla-med-nombre').value = '';
+                document.getElementById('plantilla-med-indicacion').value = '';
+                renderizarPlantillas();
+            }
+        });
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                button.classList.add('active');
+                document.getElementById(button.dataset.tab).classList.add('active');
+            });
+        });
+
+        // ===== IMPORTAR Y EXPORTAR =====
+        function exportarDatos() {
+          try {
+            const datosParaExportar = {
+              medico: localStorage.getItem('recetario_medico') || JSON.stringify({}),
+              logos: localStorage.getItem('recetario_logos') || JSON.stringify({}),
+              plantillas: localStorage.getItem('recetario_plantillas') || JSON.stringify({ diagnosticos: [], medicamentos: [] }),
+              historial: localStorage.getItem('recetario_historial') || JSON.stringify([]),
+              padron: localStorage.getItem('recetario_padron') || JSON.stringify([])
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(datosParaExportar, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "recetario_backup_" + new Date().toISOString().split('T')[0] + ".json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            mostrarToast('Respaldo exportado.');
+            modalDatos.style.display = 'none';
+          } catch (error) {
+            console.error("Error al exportar:", error);
+            mostrarToast('Error al exportar los datos.');
+          }
+        }
+        function importarDatos(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            try {
+              const datosImportados = JSON.parse(e.target.result);
+              if (confirm('¿Seguro que deseas sobrescribir tus datos actuales con el respaldo? Esta acción no se puede deshacer.')) {
+                let datosCargados = 0;
+                if (datosImportados.medico) { localStorage.setItem('recetario_medico', datosImportados.medico); datosCargados++; }
+                if (datosImportados.logos) { localStorage.setItem('recetario_logos', datosImportados.logos); datosCargados++; }
+                if (datosImportados.plantillas) { localStorage.setItem('recetario_plantillas', datosImportados.plantillas); datosCargados++; }
+                if (datosImportados.historial) { localStorage.setItem('recetario_historial', datosImportados.historial); datosCargados++; }
+                if (datosImportados.padron) { localStorage.setItem('recetario_padron', datosImportados.padron); datosCargados++; }
+                if (datosCargados > 0) {
+                  mostrarToast('Datos importados. Recargando...');
+                  setTimeout(() => window.location.reload(), 1500);
+                } else {
+                  mostrarToast('El archivo no contenía datos válidos.');
+                }
+              }
+            } catch (error) {
+              console.error("Error al importar:", error);
+              mostrarToast('Error: El archivo de respaldo no es válido.');
+            }
+          };
+          reader.readAsText(file);
+          event.target.value = null; 
+        }
+        document.getElementById('btn-exportar-datos').addEventListener('click', exportarDatos);
+        document.getElementById('import-file-input').addEventListener('change', importarDatos);
+
+        // ===== AUTOCOMPLETADO (VERSIÓN MEJORADA) =====
+        function autocomplete(inp, arr) {
+            let currentFocus;
+            inp.addEventListener("input", function(e) {
+                let a, b, i, val = this.value;
+                closeAllLists();
+                if (!val) { return false; }
+                currentFocus = -1;
+                a = document.createElement("DIV");
+                a.setAttribute("id", this.id + "autocomplete-list");
+                a.setAttribute("class", "autocomplete-items");
+                this.parentNode.appendChild(a);
+                for (i = 0; i < arr.length; i++) {
+                    let itemValue = "";
+                    let itemOriginal = arr[i];
+                    if (typeof itemOriginal === 'string') {
+                        itemValue = itemOriginal;
+                    } else if (typeof itemOriginal === 'object' && itemOriginal.nombre) {
+                        itemValue = itemOriginal.nombre;
+                    } else {
+                        continue;
+                    }
+                    if (itemValue.toUpperCase().includes(val.toUpperCase())) {
+                        b = document.createElement("DIV");
+                        b.innerHTML = itemValue.replace(new RegExp(val, "gi"), (match) => `<strong>${match}</strong>`);
+                        b.innerHTML += "<input type='hidden' value='" + itemValue + "'>";
+                        b.addEventListener("click", function(e) {
+                            const valorSeleccionado = this.getElementsByTagName("input")[0].value;
+                            
+                            // --- CAMBIO: Se asigna a .value (textarea) y se dispara el resize ---
+                            inp.value = valorSeleccionado;
+                            if (inp.classList.contains('autoresize-textarea')) {
+                                autoResizeTextarea(inp);
+                            }
+                            // --- FIN CAMBIO ---
+
+                            if (inp.classList.contains('medicamento-nombre')) {
+                                const plantillaEncontrada = plantillas.medicamentos.find(m => m.nombre === valorSeleccionado);
+                                if (plantillaEncontrada) {
+                                    const itemDiv = inp.closest('.item');
+                                    const indicacionInput = itemDiv.querySelector('.medicamento-indicacion');
+                                    if (indicacionInput) {
+                                        // --- CAMBIO: Se asigna a .value (textarea) y se dispara el resize ---
+                                        indicacionInput.value = plantillaEncontrada.indicacion;
+                                        if (indicacionInput.classList.contains('autoresize-textarea')) {
+                                            autoResizeTextarea(indicacionInput);
+                                        }
+                                        // --- FIN CAMBIO ---
+                                    }
+                                }
+                            }
+                            closeAllLists();
+                        });
+                        a.appendChild(b);
+                    }
+                }
+            });
+            inp.addEventListener("keydown", function(e) {
+                let x = document.getElementById(this.id + "autocomplete-list");
+                if (x) x = x.getElementsByTagName("div");
+                if (e.keyCode == 40) { // down
+                    currentFocus++;
+                    addActive(x);
+                } else if (e.keyCode == 38) { // up
+                    currentFocus--;
+                    addActive(x);
+                } else if (e.keyCode == 13) { // enter
+                    e.preventDefault();
+                    if (currentFocus > -1) {
+                        if (x) x[currentFocus].click();
+                    }
+                }
+            });
+            function addActive(x) {
+                if (!x) return false;
+                removeActive(x);
+                if (currentFocus >= x.length) currentFocus = 0;
+                if (currentFocus < 0) currentFocus = (x.length - 1);
+                x[currentFocus].classList.add("autocomplete-active");
+            }
+            function removeActive(x) {
+                for (let i = 0; i < x.length; i++) {
+                    x[i].classList.remove("autocomplete-active");
+                }
+            }
+            function closeAllLists(elmnt) {
+                const x = document.getElementsByClassName("autocomplete-items");
+                for (let i = 0; i < x.length; i++) {
+                    if (elmnt != x[i] && elmnt != inp) {
+                        x[i].parentNode.removeChild(x[i]);
+                    }
+                }
+            }
+            document.addEventListener("click", (e) => closeAllLists(e.target));
+        }
+        
+        document.getElementById('diagnosticos-container').addEventListener('focusin', (e) => {
+            if (e.target && e.target.classList.contains('diagnostico-input')) {
+                autocomplete(e.target, [...new Set([...CIE10_DIAGNOSES, ...plantillas.diagnosticos])]);
+            }
+        });
+        
+        document.getElementById('medicamentos-container').addEventListener('focusin', (e) => {
+            // --- CAMBIO: Ahora busca la clase en un <textarea> ---
+            if (e.target && e.target.classList.contains('medicamento-nombre')) {
+                autocomplete(e.target, plantillas.medicamentos);
+            }
+            // --- FIN CAMBIO ---
+        });
+
+        // ===== LÓGICA DEL CERTIFICADO =====
+        document.getElementById('btn-open-modal-certificado').addEventListener('click', () => {
+            document.getElementById('certificado-paciente').value = document.getElementById('paciente-nombre').value;
+            document.getElementById('certificado-edad').value = document.getElementById('paciente-edad').value;
+            document.getElementById('certificado-fecha-inicio').valueAsDate = new Date();
+        });
+        document.getElementById('btn-vista-previa-certificado').addEventListener('click', () => {
+            document.body.classList.add('printing-certificado');
+            document.body.classList.remove('printing-receta');
+            const vistaPreviaCert = document.getElementById('vista-previa-certificado');
+            const htmlCert = generarHtmlCertificado();
+            vistaPreviaCert.style.cssText = "width: 8.5in; height: 11in; border: 1px solid #ccc;";
+            vistaPreviaCert.innerHTML = htmlCert;
+        });
+        document.getElementById('btn-generar-pdf-certificado').addEventListener('click', () => {
+            const vistaPrev = document.getElementById('vista-previa-certificado');
+            if (!vistaPrev.innerHTML.trim()) { 
+                alert('Primero debe generar la "Vista Previa" del certificado.'); 
+                return; 
+            }
+            document.body.classList.add('printing-certificado');
+            document.body.classList.remove('printing-receta');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'p', unit: 'in', format: 'letter' });
+            html2canvas(vistaPrev, { scale: 2, useCORS: true, logging: false }).then(canvas => {
+                const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+                pdf.save(`certificado_medico.pdf`);
+            });
+        });
+        const generarHtmlCertificado = () => {
+            const paciente = document.getElementById('certificado-paciente').value.trim();
+            const edad = document.getElementById('certificado-edad').value.trim();
+            const motivo = document.getElementById('certificado-motivo').value.trim();
+            const dias = document.getElementById('certificado-dias').value;
+            const diasTexto = document.getElementById('certificado-dias-texto').value;
+            const fechaInicio = new Date(document.getElementById('certificado-fecha-inicio').value + 'T00:00:00');
+            const recomendaciones = document.getElementById('certificado-recomendaciones').value.trim();
+            const opcionesFecha = { day: '2-digit', month: 'long', year: 'numeric' };
+            const fechaElaboracion = new Date().toLocaleDateString('es-ES', opcionesFecha);
+            const fechaInicioFormato = fechaInicio.toLocaleDateString('es-ES', opcionesFecha);
+            const contactoHtml = datosMedico.contacto ? `<br><strong>Contacto:</strong> ${datosMedico.contacto}` : '';
+            return `
+                <div style="padding: 0.8in; font-family: 'Times New Roman', Times, serif; height: 100%; width: 100%; position: relative; box-sizing: border-box; display: flex; flex-direction: column; line-height: 1.8; font-size: 12pt;">
+                    <header style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 10px; flex-shrink: 0; font-family: 'Helvetica', Arial, sans-serif;">
+                        <img src="${logos.izquierdo || 'https://via.placeholder.com/140x90?text=Logo'}" alt="Logo Izquierdo" style="max-height: 90px; max-width: 140px; object-fit: contain;">
+                        <div style="text-align: center; flex-grow: 1; padding: 0 10px;">
+                            <h3 style="margin: 0; font-size: 15.5pt;">${datosMedico.nombre || 'Nombre del Médico'}</h3>
+                            <p style="margin: 2px 0; font-size: 11pt;">${datosMedico.especialidad || 'Especialidad'}</p>
+                            <p style="margin: 2px 0; font-size: 11pt;">Céd. Prof. ${datosMedico.cedula || 'N/A'}</p>
+                            <p style="margin: 2px 0; font-size: 11pt;">${datosMedico.universidad || 'Universidad'}</p>
+                        </div>
+                        <img src="${logos.derecho || 'https://via.placeholder.com/140x90?text=Logo'}" alt="Logo Derecho" style="max-height: 90px; max-width: 140px; object-fit: contain;">
+                    </header>
+                    <div style="text-align: right; margin-top: 2em;">
+                        <strong>Fecha de expedición:</strong> ${fechaElaboracion}
+                    </div>
+                    <h2 style="font-family: 'Times New Roman', Times, serif; text-align: center; margin-top: 1.5em; margin-bottom: 1.5em; font-size: 16pt; color: #000; text-decoration: underline;">CERTIFICADO MÉDICO</h2>
+                    <main style="flex-grow: 1;">
+                        <p style="text-align: justify;">A QUIEN CORRESPONDA:</p>
+                        <p style="text-align: justify; margin-top: 1.5em; text-indent: 2em;">
+                            Por medio de la presente, el que suscribe, <strong>${datosMedico.nombre || '[Nombre del Médico]'}</strong>,
+                            con Cédula Profesional No. <strong>${datosMedico.cedula || '[Cédula Profesional]'}</strong>,
+                            hago constar que el/la paciente <strong>${paciente || '[Nombre del Paciente]'}</strong> de <strong>${edad || '[Edad]'}</strong>,
+                            acudió a valoración médica el día de hoy por presentar:
+                        </p>
+                        <p style="text-align: justify; margin-top: 1em; text-indent: 2em; white-space: pre-wrap;">
+                            ${motivo || '[Motivo de la consulta y diagnóstico]'}
+                        </p>
+                        <p style="text-align: justify; margin-top: 1em; text-indent: 2em;">
+                            Por lo anterior, se recomienda reposo ${dias ? `de <strong>${dias} ${diasTexto}</strong>` : '[días de reposo]'}
+                            a partir del día <strong>${fechaInicioFormato || '[fecha de inicio]'}</strong>.
+                        </p>
+                        ${recomendaciones ? `
+                        <p style="text-align: justify; margin-top: 1em; text-indent: 2em; white-space: pre-wrap;">
+                            Indicaciones adicionales: ${recomendaciones}
+                        </p>
+                        ` : ''}
+                        <p style="text-align: justify; margin-top: 1.5em; text-indent: 2em;">
+                            Se extiende la presente constancia para los fines que al interesado convengan.
+                        </p>
+                    </main>
+                    <footer style="padding-top: 4em; flex-shrink: 0; font-family: 'Helvetica', Arial, sans-serif;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div class="footer-address" style="flex-basis: 45%; max-width: 45%; font-size: 9pt;">
+                                ${datosMedico.direccion || 'Dirección del consultorio...'}
+                                ${contactoHtml}
+                            </div>
+                            <div class="footer-signature" style="text-align: center; flex-basis: 250px; flex-shrink: 0; font-size: 10pt;">
+                                <div style="border-bottom: 1px solid #000; margin-bottom: 5px; min-height: 40px;"></div>
+                                <strong>ATENTAMENTE</strong><br>
+                                ${datosMedico.nombre || '[Nombre del Médico]'}
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            `;
+        };
+
+    });
+  </script>
+</body>
+</html>
